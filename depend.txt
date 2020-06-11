@@ -1,0 +1,5 @@
+matplotlib==3.2.1
+numpy==1.18.2
+opencv-python-headless==4.2.0.32
+pickleshare==0.7.5
+Pillow==7.0.0
