@@ -1,6 +1,5 @@
 import numpy as np
 from params import *
-
 from numba import jit, int32, int64, float64#, typeof
 from numba.experimental import jitclass
 
@@ -90,10 +89,10 @@ class fast_cop_class:
         self.y = (self.y + y) % self.SIZE
     
     def get_observation(self, cops, thief):
-        self.new_obs = []
-        for cop in cops:
-            self.new_obs += self.relative_position(cop)
-        self.new_obs += self.relative_position(thief)
+        self.new_obs = np.zeros(6, dtype=int64)
+        for index, cop in enumerate(cops):
+            self.new_obs[index*2], self.new_obs[index*2+1] = self.relative_position(cop)
+        self.new_obs[-2], self.new_obs[-2] = self.relative_position(thief)
 
     def perform_action(self, q_table, epsilon):
         self.obs = self.new_obs
@@ -120,6 +119,7 @@ thief_spec = [
     ('y', int32),
     ('obs', int64[:]),
     ('direction', int32),
+    ('closest_cop', int32)
 ]
 
 @jitclass(thief_spec)
@@ -227,9 +227,9 @@ class fast_thief_class:
         self.y = (self.y + y) % self.SIZE
     
     def get_observation(self, cops):
-        self.obs = []
-        for cop in cops:
-            self.obs += self.relative_position(cop)
+        self.obs = np.zeros(6, dtype=int64)
+        for index, cop in enumerate(cops):
+            self.obs[index*2], self.obs[index*2+1] = self.relative_position(cop)
 
     def run(self):
 
@@ -247,7 +247,14 @@ class fast_thief_class:
             distance_from_cops = []
             for cop_position in cop_positions:
                 distance_from_cops.append(abs(cop_position[0]) + abs(cop_position[1]))
-            closest_cop = np.argmin(distance_from_cops)
+
+            closest_cop = 0
+            min_distance = distance_from_cops[0]
+            for i in range(1, len(distance_from_cops)):
+                if distance_from_cops[i] < min_distance:
+                    min_distance = distance_from_cops[i]
+                    closest_cop = i
+
             self.direction = run_directions[closest_cop][0]
         else:
             self.direction = list(possible_escape_all)[0]
