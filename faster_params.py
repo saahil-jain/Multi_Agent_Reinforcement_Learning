@@ -1,3 +1,5 @@
+from numba import jit, int64, float64
+
 SHOW=False
 PRINT_EPISODE = False
 SHOW_PLOT = False
@@ -22,6 +24,7 @@ COP_N = 1
 THIEF_N = -1 
 agent_colours = {1: (255, 175, 0), -1: (0, 0, 255)}
 
+@jit
 def get_params(episodes):
     # EPISODES = 10_000
     # EPS_DECAY = 0.9996

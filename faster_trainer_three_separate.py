@@ -4,8 +4,8 @@ import cv2
 import matplotlib.pyplot as plt
 import pickle
 from matplotlib import style
-from agents import *
-from params import *
+from faster_agents import *
+from faster_params import *
 from numba import jit
 
 style.use("ggplot")
@@ -50,10 +50,10 @@ def fast_train_separate(EPISODES=100):
 
     episode_rewards = []
     
-    cop1 = cop_class(SIZE, LEARNING_RATE, DISCOUNT)
-    cop2 = cop_class(SIZE, LEARNING_RATE, DISCOUNT)
-    cop3 = cop_class(SIZE, LEARNING_RATE, DISCOUNT)
-    thief = thief_class()
+    cop1 = fast_cop_class(SIZE, LEARNING_RATE, DISCOUNT)
+    cop2 = fast_cop_class(SIZE, LEARNING_RATE, DISCOUNT)
+    cop3 = fast_cop_class(SIZE, LEARNING_RATE, DISCOUNT)
+    thief = fast_thief_class()
     catch_count1 = 0
     catch_count2 = 0
     catch_count3 = 0
