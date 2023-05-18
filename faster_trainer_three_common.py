@@ -11,23 +11,23 @@ from numba import jit
 style.use("ggplot")
 
 @jit(nopython=True)
-def fast_train_separate(EPISODES=100):
+def fast_train_common(EPISODES=100):
     EPSILON = 1.0
     EPS_DECAY, SHOW_EVERY = get_params(EPISODES)
 
-    start_q_table_1 = None
-    start_q_table_2 = None
-    start_q_table_3 = None
-    # start_q_table_1 = "Models/qtable_1.pickle" # None or Filename
-    # start_q_table_2 = "Models/qtable_2.pickle" # None or Filename
-    # start_q_table_3 = "Models/qtable_3.pickle" # None or Filename
+    start_q_table = None
+    # start_q_table = "Models/qtable.pickle" # None or Filename
 
-    if start_q_table_1 is None:
+
+
+
+
+    if start_q_table is None:
         sight_range = 2*SIGHT+1
 
-        q_table_1 = np.zeros((sight_range, sight_range, sight_range, sight_range, sight_range, sight_range, 4))
-        q_table_2 = np.zeros((sight_range, sight_range, sight_range, sight_range, sight_range, sight_range, 4))
-        q_table_3 = np.zeros((sight_range, sight_range, sight_range, sight_range, sight_range, sight_range, 4))
+        q_table = np.zeros((sight_range, sight_range, sight_range, sight_range, sight_range, sight_range, 4))
+
+
 
         for i in range(- SIGHT, SIGHT+1):
             for ii in range(- SIGHT, SIGHT+1):
@@ -35,21 +35,21 @@ def fast_train_separate(EPISODES=100):
                         for iiii in range(- SIGHT, SIGHT+1):
                             for iiiii in range(- SIGHT, SIGHT+1):
                                     for iiiiii in range(- SIGHT, SIGHT+1):
-                                        q_table_1[i, ii, iii, iiii, iiiii, iiiiii, :] = [np.random.uniform(-1, 1) for i in range(4)]
-                                        q_table_2[i, ii, iii, iiii, iiiii, iiiiii, :] = [np.random.uniform(-1, 1) for i in range(4)]
-                                        q_table_3[i, ii, iii, iiii, iiiii, iiiiii, :] = [np.random.uniform(-1, 1) for i in range(4)]
+                                        q_table[i, ii, iii, iiii, iiiii, iiiiii, :] = [np.random.uniform(-1, 1) for i in range(4)]
+
+                                        
 
     # else:
-    #     with open(start_q_table_1, "rb") as f:
-    #         q_table_1 = pickle.load(f)
-    #     with open(start_q_table_2, "rb") as f:
-    #         q_table_2 = pickle.load(f)
-    #     with open(start_q_table_3, "rb") as f:
-    #         q_table_3 = pickle.load(f)
+    #     with open(start_q_table, "rb") as f:
+    #         q_table = pickle.load(f)
+
+
+
+
+
 
 
     episode_rewards = []
-    
     cop1 = cop_class(SIZE, LEARNING_RATE, DISCOUNT)
     cop2 = cop_class(SIZE, LEARNING_RATE, DISCOUNT)
     cop3 = cop_class(SIZE, LEARNING_RATE, DISCOUNT)
@@ -75,9 +75,9 @@ def fast_train_separate(EPISODES=100):
         cop2.get_observation([cop3, cop1], thief)
         cop3.get_observation([cop1, cop2], thief)
         for i in range(MAX_STEPS):
-            cop1.perform_action(q_table_1, EPSILON)
-            cop2.perform_action(q_table_2, EPSILON)
-            cop3.perform_action(q_table_3, EPSILON)
+            cop1.perform_action(q_table, EPSILON)
+            cop2.perform_action(q_table, EPSILON)
+            cop3.perform_action(q_table, EPSILON)
             if cop1.x == thief.x and cop1.y == thief.y:
                 reward = CATCH_REWARD
                 cop1_caught = CATCH_REWARD
@@ -126,9 +126,9 @@ def fast_train_separate(EPISODES=100):
             thief.get_observation([cop1, cop2, cop3])
             thief.run()
 
-            cop1.update_table(q_table_1, reward + cop1_caught + cop1_collide , [cop2, cop3], thief)
-            cop2.update_table(q_table_2, reward + cop2_caught + cop2_collide , [cop3, cop1], thief)
-            cop3.update_table(q_table_3, reward + cop3_caught + cop3_collide , [cop1, cop2], thief)
+            cop1.update_table(q_table, reward + cop1_caught + cop1_collide , [cop2, cop3], thief)
+            cop2.update_table(q_table, reward + cop2_caught + cop2_collide , [cop3, cop1], thief)
+            cop3.update_table(q_table, reward + cop3_caught + cop3_collide , [cop1, cop2], thief)
 
             episode_reward += reward
             if reward == CATCH_REWARD:
@@ -144,17 +144,17 @@ def fast_train_separate(EPISODES=100):
     plt.plot([i+SHOW_EVERY for i in range(len(moving_avg))], moving_avg)
     plt.ylabel(f'Rewards')
     plt.xlabel('episode #')
-    plt.savefig('Graphs/separate_performance.png')
+    plt.savefig('Graphs/shared_performance.png')
     
     if SHOW_PLOT:
         plt.show()
 
-    with open(f'Models/qtable_1.pickle', 'wb') as f:
-        pickle.dump(q_table_1, f)
-    with open(f'Models/qtable_2.pickle', 'wb') as f:
-        pickle.dump(q_table_2, f)
-    with open(f'Models/qtable_3.pickle', 'wb') as f:
-        pickle.dump(q_table_3, f)
+    with open(f'Models/qtable.pickle', 'wb') as f:
+        pickle.dump(q_table, f)
+
+
+
+
 
     catch_count_total = (catch_count1 + catch_count2 + catch_count3)
     print("Catching Percentage : Cop 1  :", catch_count1 * 100 / catch_count_total)
@@ -165,4 +165,4 @@ def fast_train_separate(EPISODES=100):
     print("Average Steps To Catch       :", MAX_STEPS - (sum(episode_rewards)/len(episode_rewards)))
 
 if __name__=="__main__":
-    fast_train_separate(EPISODES=1)
+    fast_train_common(EPISODES=1)
